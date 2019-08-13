@@ -1,0 +1,51 @@
+{
+	"segurado" : "123456789012345", // CUSS da tabela
+	"prestador" : "100000014284", // Sempre 025063150001
+	"programa" : "1", // Sempre 1
+	"lista-indicadores" : [
+		{
+			"codigoIndicador" : "11", 
+			"codigoIndicadorDetalhe" : "43",
+			"valorReferenteIndicador" : "68"
+		},
+		{
+			"codigoIndicador" : "2",
+			"codigoIndicadorDetalhe" : "6",
+			"valorReferenteIndicador" : ""
+		},	
+		{
+			"codigoIndicador" : "11",
+			"codigoValorIndicador" : "44",
+			"valorReferenteIndicador" : "70"
+		},
+		{
+			"codigoIndicador" : "12",
+			"codigoValorIndicador" : "45",
+			"valorReferenteIndicador" : "1,70"
+		}
+	],
+	"lista-medicamentos" : [
+		{
+			"nomeMedicamento" : "Humira",
+			"dosagem" : "1",
+			"posologia" : "2 x Semana"
+		},
+		{
+			"nomeMedicamento" : "Simponi",
+			"dosagem" : "2",
+			"posologia" : "3 x Dia"
+		}
+	],
+	"lista-CIDs" : [
+		{
+			"codigoCID" : "G031",
+			"dataInicio" : "01/01/2000",
+			"referido" : "S"
+		},
+		{
+			"codigoCID" : "G040",
+			"dataInicio" : "01/01/2010",
+			"referido" : "N"
+		}
+	]
+}
