@@ -6,9 +6,9 @@
             FROM
                 gsc_paciente
             WHERE cnv_codigo = 50 
-            AND pac_sas_cod_unico = 2234433
+            -- AND pac_sas_cod_unico = 2234433
             AND sts_codigo = 7 -- Ativos
-            -- LIMIT 15');
+            LIMIT 15');
         $sql->execute();
         $return = $sql->fetchAll(PDO::FETCH_ASSOC);
 
@@ -559,6 +559,19 @@
                             "codigoIndicadorDetalhe": 60
                         }],';
 
+                        $payload .= '"lista-medicamentos": [';
+                        for ($x=0; $x < $num_linha_medicamentos; $x++) {
+                            $payload2 .= '
+                            {
+                                "nomeMedicamento": "'.$dadosMedicamentos['dados'][$x]['medicamento'].'",
+                                "dosagem": "'.$dadosMedicamentos['dados'][$x]['dosagem'].'",
+                                "posologia": "'.$dadosMedicamentos['dados'][$x]['posologia'].'"
+                            },';
+                        }
+
+                        $payload .= substr($payload2,0,-1);
+
+                        $payload .= ']';
                     } else {
                         $payload .= ']';
                     }

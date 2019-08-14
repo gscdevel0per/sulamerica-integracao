@@ -29,16 +29,16 @@
             echo "</pre>";
             $sql = $conn->prepare('UPDATE '.$tabela_control_token.' SET access_token = "'.$access_token.'" , gerado_em = "'.$data_atual.'" , expira_em = "'.$expira_em->format('Y-m-d H:i').'" WHERE id = 1');
             $sql->execute();
-            //  generatePayLoad($access_token, $conn, $cuidadoCoordenado, $ambiente); # Indicadores
-            generatePayLoadCids($access_token, $conn, $cuidadoCoordenado, $ambiente); # CIDs
+            generatePayLoad($access_token, $conn, $cuidadoCoordenado, $ambiente); # Indicadores
+            // generatePayLoadCids($access_token, $conn, $cuidadoCoordenado, $ambiente); # CIDs
         } else {
             print_r("<strong>Application Error:</strong> Failed to Generate AccessToken.");
             exit();
         }
     } else {
         $access_token = $tokenArray[0]['access_token'];
-        // generatePayLoad($access_token, $conn, $cuidadoCoordenado, $ambiente); # Indicadores
-        generatePayLoadCids($access_token, $conn, $cuidadoCoordenado, $ambiente); # CIDs
+        generatePayLoad($access_token, $conn, $cuidadoCoordenado, $ambiente); # Indicadores
+        // generatePayLoadCids($access_token, $conn, $cuidadoCoordenado, $ambiente); # CIDs
     }
 
 ?>
