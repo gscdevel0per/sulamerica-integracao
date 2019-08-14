@@ -559,26 +559,6 @@
                             "codigoIndicadorDetalhe": 60
                         }],';
 
-                        $payload .= '"lista-medicamentos": [';
-                        for ($x=0; $x < $num_linha_medicamentos; $x++) { 
-                            $payload2 .= '
-                            {
-                                "nomeMedicamento": "'.$dadosMedicamentos['dados'][$x]['medicamento'].'",
-                                "dosagem": "'.$dadosMedicamentos['dados'][$x]['dosagem'].'",
-                                "posologia": "'.$dadosMedicamentos['dados'][$x]['posologia'].'"
-                            },';
-                        }
-
-                        $payload .= substr($payload2,0,-1);
-
-                        // $payload .= '
-                        // {
-                        //     "nomeMedicamento": "ATENOLOL",
-                        //     "dosagem": "10 MG",
-                        //     "posologia": "1 vezes ao dia"
-                        // }
-                        // ]';
-                        $payload .= ']';
                     } else {
                         $payload .= ']';
                     }
@@ -631,13 +611,6 @@
                                 "dataFim": "'.$dadosAntecedentes[$in]['data_inicio'].'",
                                 "flgReferido": "'.$referido.'"
                             },';
-                            # TESTE SULAMERICA
-                            // $payload2 .= '
-                            // {
-                            //     "codigoInterDoenca": "'.str_replace(".","",$dadosAntecedentes[$in]['num_cid']).'",
-                            //     "dataInicio": "'.$dadosAntecedentes[$in]['data_inicio'].'",
-                            //     "flgReferido": "'.$referido.'"
-                            // },';
                         }
                         $payload .= substr($payload2,0,-1);
                     }
