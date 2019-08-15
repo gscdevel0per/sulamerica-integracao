@@ -6,7 +6,7 @@
             include('Config/databaseConnectionDev.php');
         break;
         case 'homolog':
-            include('Config/databaseConnection.php');
+            include('Config/databaseConnectionHomolog.php');
         break;  
         case 'prod':
             include('Config/databaseConnection.php');
@@ -19,7 +19,20 @@
     include('functions.php');
     ini_set('max_execution_time', 1200); //300 seconds = 5 minutes
     set_time_limit(1200);
-    $ambiente = $_GET['environment'];
+    switch ($_GET['environment']) {
+        case 'dev':
+            $ambiente = $_GET['environment'];
+            break;     
+        case 'homolog':
+            $ambiente = $_GET['environment'];
+            break; 
+        case 'prod':
+            $ambiente = $_GET['environment'];
+            break;            
+        default:
+            $ambiente = 'dev';
+            break;
+    }
 
     $cuidadoCoordenado = new SulamericaApi();
 
