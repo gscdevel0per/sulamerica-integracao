@@ -12,7 +12,9 @@
         SELECT cuss FROM gsc_sulamerica_medicamentos
         union
         SELECT cuss FROM gsc_sulamerica_tratamento
-        )x GROUP BY x.cuss');
+        )x GROUP BY x.cuss
+        order by 1 desc
+        LIMIT 10');
         $sql->execute();
         $return = $sql->fetchAll(PDO::FETCH_ASSOC);
 
