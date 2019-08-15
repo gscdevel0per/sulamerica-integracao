@@ -32,8 +32,8 @@ class SulamericaApi {
 
     public function SendData($access_token, $body, $ambiente){
 
-        $endpoint = "https://apisulamerica.sensedia.com/".$ambiente."/coordinated-care/v1/clinical-indicators";
-        // $endpoint = "https://teste-api-sulamerica3.free.beeceptor.com";
+        // $endpoint = "https://apisulamerica.sensedia.com/".$ambiente."/coordinated-care/v1/clinical-indicators";
+        $endpoint = "https://teste-api-sulamerica3.free.beeceptor.com";
         $clientID = "afb85967-389f-3ab3-ba40-64efd24607bf";
         $addHeaders = "client_id: afb85967-389f-3ab3-ba40-64efd24607bf";
 
@@ -60,8 +60,8 @@ class SulamericaApi {
 
     public function SendDataCid($access_token, $body, $ambiente){
 
-        $endpoint = "https://apisulamerica.sensedia.com/".$ambiente."/coordinated-care/v1/medical-records";
-        // $endpoint = "https://teste-api-sulamerica3.free.beeceptor.com";
+        // $endpoint = "https://apisulamerica.sensedia.com/".$ambiente."/coordinated-care/v1/medical-records";
+        $endpoint = "https://teste-api-sulamerica3.free.beeceptor.com";
         $clientID = "afb85967-389f-3ab3-ba40-64efd24607bf";
         $addHeaders = "client_id: afb85967-389f-3ab3-ba40-64efd24607bf";
 
