@@ -1,14 +1,28 @@
 <?php
 
-    include('Config/databaseConnection.php');
+    $database = $_GET['database'];
+    switch ($database) {
+        case 'desenv':
+            include('Config/databaseConnectionDev.php');
+        break;
+        case 'homolog':
+            include('Config/databaseConnection.php');
+        break;  
+        case 'prod':
+            include('Config/databaseConnection.php');
+        break;      
+        default:
+            include('Config/databaseConnectionDev.php');
+        break;
+    }
     include('token.php');
     include('functions.php');
     ini_set('max_execution_time', 1200); //300 seconds = 5 minutes
     set_time_limit(1200);
-    $ambiente = 'homolog';
+    $ambiente = $_GET['environment'];
+
     $cuidadoCoordenado = new SulamericaApi();
 
-      
     //generatePayLoad($conn, $cuidadoCoordenado);
 
     $tabela_control_token = 'gsc_sulamerica_control_token';
@@ -30,7 +44,6 @@
             $sql = $conn->prepare('UPDATE '.$tabela_control_token.' SET access_token = "'.$access_token.'" , gerado_em = "'.$data_atual.'" , expira_em = "'.$expira_em->format('Y-m-d H:i').'" WHERE id = 1');
             $sql->execute();
             generatePayLoad($access_token, $conn, $cuidadoCoordenado, $ambiente); # Indicadores
-            // generatePayLoadCids($access_token, $conn, $cuidadoCoordenado, $ambiente); # CIDs
         } else {
             print_r("<strong>Application Error:</strong> Failed to Generate AccessToken.");
             exit();
@@ -38,7 +51,6 @@
     } else {
         $access_token = $tokenArray[0]['access_token'];
         generatePayLoad($access_token, $conn, $cuidadoCoordenado, $ambiente); # Indicadores
-        // generatePayLoadCids($access_token, $conn, $cuidadoCoordenado, $ambiente); # CIDs
     }
 
 ?>

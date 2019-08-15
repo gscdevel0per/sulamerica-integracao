@@ -1,14 +1,18 @@
 <?php 
 
     function getCuss($conn) {
-        $sql = $conn->prepare('SELECT DISTINCT
-                pac_sas_cod_unico
-            FROM
-                gsc_paciente
-            WHERE cnv_codigo = 50 
-            -- AND pac_sas_cod_unico = 8483605
-            AND sts_codigo = 7 -- Ativos
-            LIMIT 15');
+        $sql = $conn->prepare('SELECT x.cuss as pac_sas_cod_unico
+        FROM(
+        SELECT cuss FROM gsc_sulamerica_antropometricos
+        union
+        SELECT cuss FROM gsc_sulamerica_autocontrole
+        union
+        SELECT cuss FROM gsc_sulamerica_habitos
+        union
+        SELECT cuss FROM gsc_sulamerica_medicamentos
+        union
+        SELECT cuss FROM gsc_sulamerica_tratamento
+        )x GROUP BY x.cuss');
         $sql->execute();
         $return = $sql->fetchAll(PDO::FETCH_ASSOC);
 
@@ -140,19 +144,59 @@
 
         return $return;
     }
-    
+
+    function totalMedicamentos($cuss, $conn) {
+        $sql = $conn->prepare('SELECT 
+            count(cuss) as total_medicamentos 
+        FROM 
+            gsc_sulamerica_medicamentos
+        WHERE cuss = '.$cuss);
+        $sql->execute();
+        $return = $sql->fetchAll(PDO::FETCH_ASSOC);
+
+        return $return;
+    }
+
+    function getMedicamentosFor($conn, $cuss, $loop) {
+        $sql = $conn->prepare('SELECT 
+            cuss
+            , numero_da_carteirinha
+            , pac_codigo
+            , nome_participante    
+            , medicamento
+            , dosagem
+            , posologia
+        FROM
+            gsc_sulamerica_medicamentos
+        WHERE
+            cuss ='.$cuss.'
+        group by pac_codigo, medicamento, dosagem, posologia');
+        $sql->execute();
+        $dados = $sql->fetchAll(PDO::FETCH_ASSOC);
+        $payload2 = "";
+        for ($i=0; $i < $loop; $i++) { 
+            $payload2 .= '
+            {
+                "nomeMedicamento": "'.$dados[0]['medicamento'].'",
+                "dosagem": "'.$dados[0]['dosagem'].'",
+                "posologia": "'.$dados[0]['posologia'].'"
+            },';
+        }
+
+        return $payload2;
+    }
 
     function generatePayLoad($access_token, $conn, $cuidadoCoordenado, $ambiente) {
         $arrayCuss = getCuss($conn); 
         $payload2 = ""; 
+
         for ($i=0; $i < count($arrayCuss); $i++) { 
             $dadosAntropometricos   = getAntropometricos($arrayCuss[$i]['pac_sas_cod_unico'], $conn);
             $dadosAutocontrole      = getAutocontrole($arrayCuss[$i]['pac_sas_cod_unico'], $conn);
             $dadosMedicamentos      = getMedicamentos($arrayCuss[$i]['pac_sas_cod_unico'], $conn);
             $dadosHabitos           = getHabitos($arrayCuss[$i]['pac_sas_cod_unico'], $conn);
             $dadosTratamentos       = getTratamentos($arrayCuss[$i]['pac_sas_cod_unico'], $conn);
-
-            $num_linha_medicamentos = $dadosMedicamentos['linhas'];
+            $totalMedicamentos      = totalMedicamentos($arrayCuss[$i]['pac_sas_cod_unico'], $conn);
 
             if ($arrayCuss[$i]['pac_sas_cod_unico'] != 0) {
                 
@@ -531,7 +575,8 @@
 
                 // $payload .= '],';
                 $payload = substr($payload,0,-1);
-                if ($dadosMedicamentos == "") {
+                if ($totalMedicamentos[0]['total_medicamentos'] > 0) {
+
                     $payload .= '
                     ,{
                         "codigoIndicador": 21,
@@ -539,15 +584,15 @@
                     }],';
 
                     $payload .= '"lista-medicamentos": [';
-                    for ($x=0; $x < $num_linha_medicamentos; $x++) {
-                        $payload2 .= '
-                        {
-                            "nomeMedicamento": "'.$dadosMedicamentos['dados'][$x]['medicamento'].'",
-                            "dosagem": "'.$dadosMedicamentos['dados'][$x]['dosagem'].'",
-                            "posologia": "'.$dadosMedicamentos['dados'][$x]['posologia'].'"
-                        },';
-                    }
-
+                    // for ($x=0; $x < $totalMedicamentos[0]['total_medicamentos']; $x++) {
+                    //     $payload2 .= '
+                    //     {
+                    //         "nomeMedicamento": "'.$dadosMedicamentos['dados'][$x]['medicamento'].'",
+                    //         "dosagem": "'.$dadosMedicamentos['dados'][$x]['dosagem'].'",
+                    //         "posologia": "'.$dadosMedicamentos['dados'][$x]['posologia'].'"
+                    //     },';
+                    // }
+                    $payload2 = getMedicamentosFor($conn, $arrayCuss[$i]['pac_sas_cod_unico'],$totalMedicamentos[0]['total_medicamentos']);
                     $payload .= substr($payload2,0,-1);
 
                     $payload .= ']';
