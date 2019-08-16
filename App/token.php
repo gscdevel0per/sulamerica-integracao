@@ -1,15 +1,15 @@
 <?php
 class SulamericaApi {
 
-    public function GetOAuthToken($ambiente) {
+    public function GetOAuthToken($ambiente, $clientID, $clientSecret) {
 
         # Alimentando as variáveis para utilização no cUrl.
         $endpoint = "https://apisulamerica.sensedia.com".$ambiente."/coordinated-care/v1/oauth/access-token";
-        $clientID = "de9c04dd-d298-3976-9a82-3f795a1315b0";
-        $clientSecret = "99fa8e66-45be-3741-b1ea-71b6c57ad757";
+        // $clientID = "afb85967-389f-3ab3-ba40-64efd24607bf";
+        // $clientSecret = "b6a99eb1-38d1-3974-a4a9-ef78d0388cdd";
         $body = array("grant_type" => "client_credentials");
         $payload = json_encode($body);
-        $addHeaders = "client_id: de9c04dd-d298-3976-9a82-3f795a1315b0";
+        $addHeaders = "client_id: afb85967-389f-3ab3-ba40-64efd24607bf";
 
         $ch = curl_init($endpoint);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', $addHeaders));
@@ -30,12 +30,11 @@ class SulamericaApi {
         return $return;
     }
 
-    public function SendData($access_token, $body, $ambiente){
+    public function SendData($access_token, $body, $ambiente, $clientID){
 
         $endpoint = "https://apisulamerica.sensedia.com".$ambiente."/coordinated-care/v1/clinical-indicators";
         // $endpoint = "https://teste-api-sulamerica3.free.beeceptor.com";
-        $clientID = "de9c04dd-d298-3976-9a82-3f795a1315b0";
-        $addHeaders = "client_id: de9c04dd-d298-3976-9a82-3f795a1315b0";
+        $addHeaders = "client_id: ".$clientID;
 
         $ch2 = curl_init($endpoint);
         curl_setopt($ch2, CURLOPT_HTTPHEADER, array('ACCESS_TOKEN: '.$access_token, 'Content-Type: application/json', $addHeaders));
@@ -58,12 +57,11 @@ class SulamericaApi {
         return $response;
     }
 
-    public function SendDataCid($access_token, $body, $ambiente){
+    public function SendDataCid($access_token, $body, $ambiente, $clientID){
 
         $endpoint = "https://apisulamerica.sensedia.com".$ambiente."/coordinated-care/v1/medical-records";
         // $endpoint = "https://teste-api-sulamerica3.free.beeceptor.com";
-        $clientID = "afb85967-389f-3ab3-ba40-64efd24607bf";
-        $addHeaders = "client_id: afb85967-389f-3ab3-ba40-64efd24607bf";
+        $addHeaders = "client_id: ".$clientID;
 
         $ch2 = curl_init($endpoint);
         curl_setopt($ch2, CURLOPT_HTTPHEADER, array('ACCESS_TOKEN: '.$access_token, 'Content-Type: application/json', $addHeaders));

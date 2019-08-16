@@ -21,16 +21,28 @@
     set_time_limit(1200);
     switch ($_GET['environment']) {
         case 'dev':
-            $ambiente = $_GET['environment'];
+            $ambiente = "/".$_GET['environment'];
+            $programa = 1;
+            $clientID = "afb85967-389f-3ab3-ba40-64efd24607bf";
+            $clientSecret = "b6a99eb1-38d1-3974-a4a9-ef78d0388cdd";
             break;     
         case 'homolog':
-            $ambiente = $_GET['environment'];
+            $ambiente = "/".$_GET['environment'];
+            $programa = 1;
+            $clientID = "afb85967-389f-3ab3-ba40-64efd24607bf";
+            $clientSecret = "b6a99eb1-38d1-3974-a4a9-ef78d0388cdd";
             break; 
         case 'prod':
-            $ambiente = $_GET['environment'];
+            $ambiente = "";
+            $programa = 15135;
+            $clientID = "de9c04dd-d298-3976-9a82-3f795a1315b0";
+            $clientSecret = "99fa8e66-45be-3741-b1ea-71b6c57ad757";
             break;            
         default:
-            $ambiente = 'dev';
+            $ambiente = "/dev";
+            $programa = 1;
+            $clientID = "afb85967-389f-3ab3-ba40-64efd24607bf";
+            $clientSecret = "b6a99eb1-38d1-3974-a4a9-ef78d0388cdd";
             break;
     }
     $cuidadoCoordenado = new SulamericaApi();
@@ -47,7 +59,7 @@
     $data_aux = DateTime::createFromFormat('Y-m-d H:i', $data_atual);
 
     if (empty($tokenArray) || $data_atual >= $tokenArray[0]['expira_em']){
-        $access_token = $cuidadoCoordenado->GetOAuthToken($ambiente);
+        $access_token = $cuidadoCoordenado->GetOAuthToken($ambiente, $clientID, $clientSecret);
         $expira_em = $data_aux->add(new DateInterval('PT3600S'));
         if ($access_token) {
             echo "<pre>";
@@ -55,14 +67,14 @@
             echo "</pre>";
             $sql = $conn->prepare('UPDATE '.$tabela_control_token.' SET access_token = "'.$access_token.'" , gerado_em = "'.$data_atual.'" , expira_em = "'.$expira_em->format('Y-m-d H:i').'" WHERE id = 1');
             $sql->execute();
-            generatePayLoadCids($access_token, $conn, $cuidadoCoordenado, $ambiente); # CIDs
+            generatePayLoadCids($access_token, $conn, $cuidadoCoordenado, $ambiente, $programa, $clientID); # CIDs
         } else {
             print_r("<strong>Application Error:</strong> Failed to Generate AccessToken.");
             exit();
         }
     } else {
         $access_token = $tokenArray[0]['access_token'];
-        generatePayLoadCids($access_token, $conn, $cuidadoCoordenado, $ambiente); # CIDs
+        generatePayLoadCids($access_token, $conn, $cuidadoCoordenado, $ambiente, $programa, $clientID); # CIDs
     }
 
 ?>

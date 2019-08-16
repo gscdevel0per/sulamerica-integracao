@@ -13,8 +13,7 @@
         union
         SELECT cuss FROM gsc_sulamerica_tratamento
         )x GROUP BY x.cuss
-        order by 1 desc
-        LIMIT 1');
+        order by 1 desc');
         $sql->execute();
         $return = $sql->fetchAll(PDO::FETCH_ASSOC);
 
@@ -188,9 +187,11 @@
         return $payload2;
     }
 
-    function generatePayLoad($access_token, $conn, $cuidadoCoordenado, $ambiente) {
+    function generatePayLoad($access_token, $conn, $cuidadoCoordenado, $ambiente, $programa, $clientID) {
         $arrayCuss = getCuss($conn); 
         $payload2 = ""; 
+        date_default_timezone_set('America/Sao_Paulo');
+        $data_atual = date('Y-m-d H:i');
 
         for ($i=0; $i < count($arrayCuss); $i++) { 
             $dadosAntropometricos   = getAntropometricos($arrayCuss[$i]['pac_sas_cod_unico'], $conn);
@@ -207,7 +208,7 @@
                 $payload = '{ 
                     "segurado": '.$arrayCuss[$i]['pac_sas_cod_unico'].',
                     "prestador": "025063150001",
-                    "programa": 15135,
+                    "programa": '.$programa.',
                 '; 
                 $payload .= '"lista-indicadores": [';
     
@@ -604,21 +605,21 @@
                 }
                 
                 $payload .= '}';
-                echo "<pre>";
-                print_r($payload);
-                // echo $arrayCuss[$i]['pac_sas_cod_unico'] . " - ";
-                $cod_retorno = $cuidadoCoordenado->SendData($access_token, $payload, $ambiente);
-                // echo $cod_retorno['statusCode'];
+                # Envio de dados chamando a classe Token.
+                $cod_retorno = $cuidadoCoordenado->SendData($access_token, $payload, $ambiente, $clientID);
+                # Resgata o retorno do payload e insere no log.
+                $json_aux = json_decode($payload);
+                $json = json_encode($json_aux);
+                $sql = $conn->prepare("INSERT gsc_sulamerica_logs SELECT null,".$arrayCuss[$i]['pac_sas_cod_unico'].",'".$data_atual."',".$cod_retorno['statusCode'].",'".$cod_retorno['returnBody']."','".$json."','Indicadores'");
+                $sql->execute();
                 if ($cod_retorno['statusCode'] != 200 && $cod_retorno['statusCode'] != 201) {
-                    echo $cod_retorno['statusCode']. "FAIL - ";
-                    //print_r($payload);
+                    
                 } 
-                echo "</pre>";
             }
         }
     }
 
-    function generatePayLoadCids($access_token, $conn, $cuidadoCoordenado, $ambiente) {
+    function generatePayLoadCids($access_token, $conn, $cuidadoCoordenado, $ambiente, $programa, $clientID) {
         $arrayCuss = getCuss($conn);  
         $payload2 = "";
         for ($i=0; $i < count($arrayCuss); $i++) { 
@@ -629,7 +630,7 @@
                     $payload = '{
                         "segurado": '.$arrayCuss[$i]['pac_sas_cod_unico'].',
                         "prestador": "025063150001",
-                        "programa": 1,
+                        "programa": '.$programa.',
                     ';
                     $payload .= '"lista-CIDs": [';
         
@@ -654,13 +655,16 @@
                         $payload .= substr($payload2,0,-1);
                     }
                     $payload .= ']}';
-                    echo "<pre>";
-                    print_r($payload);
-                    echo "</pre>";
-                    
-                    echo "<pre>";
-                    print_r($cuidadoCoordenado->SendDataCid($access_token, $payload, $ambiente));
-                    echo "</pre>";
+                   # Envio de dados chamando a classe Token.
+                    $cod_retorno = $cuidadoCoordenado->SendDataCid($access_token, $payload, $ambiente, $clientID);
+                    # Resgata o retorno do payload e insere no log.
+                    $json_aux = json_decode($payload);
+                    $json = json_encode($json_aux);
+                    $sql = $conn->prepare("INSERT gsc_sulamerica_logs SELECT null,".$arrayCuss[$i]['pac_sas_cod_unico'].",'".$data_atual."',".$cod_retorno['statusCode'].",'".$cod_retorno['returnBody']."','".$json."','Cids'");
+                    $sql->execute();
+                    if ($cod_retorno['statusCode'] != 200 && $cod_retorno['statusCode'] != 201) {
+                        
+                    }
                 }
             }
         }
