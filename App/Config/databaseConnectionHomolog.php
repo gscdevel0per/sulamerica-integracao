@@ -1,6 +1,6 @@
 <?php 
-    $username = 'usr_fmoreira';
-    $password = 'Nsdb!sj948';
+    $username = 'apisulamerica';
+    $password = 'Kodb!89Po';
 
     try {
         $conn = new PDO('mysql:host=172.16.1.8;dbname=gsc;charset=utf8', $username, $password); # Homologacao

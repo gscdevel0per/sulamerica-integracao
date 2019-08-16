@@ -203,11 +203,12 @@
             if ($arrayCuss[$i]['pac_sas_cod_unico'] != 0) {
                 
                 // Iniciando montagem do cabeçalho do JSON.
-                $payload = '{
+                
+                $payload = '{ 
                     "segurado": '.$arrayCuss[$i]['pac_sas_cod_unico'].',
                     "prestador": "025063150001",
-                    "programa": 1,
-                ';
+                    "programa": 15135,
+                '; 
                 $payload .= '"lista-indicadores": [';
     
                 if (!empty($dadosAntropometricos)) {
