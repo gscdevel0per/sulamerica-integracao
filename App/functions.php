@@ -279,7 +279,7 @@
                                 case 'Não':
                                     $adesaoAoMedicamento = 58;
                                     break;
-                                case 'Não faz uso de medicamento contínuo':
+                                case 'Não faz uso de medicamento continuo':
                                     $adesaoAoMedicamento = 59;
                                     break;
                             }
