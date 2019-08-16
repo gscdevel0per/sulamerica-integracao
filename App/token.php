@@ -5,11 +5,11 @@ class SulamericaApi {
 
         # Alimentando as variáveis para utilização no cUrl.
         $endpoint = "https://apisulamerica.sensedia.com".$ambiente."/coordinated-care/v1/oauth/access-token";
-        $clientID = "afb85967-389f-3ab3-ba40-64efd24607bf";
-        $clientSecret = "b6a99eb1-38d1-3974-a4a9-ef78d0388cdd";
+        $clientID = "de9c04dd-d298-3976-9a82-3f795a1315b0";
+        $clientSecret = "99fa8e66-45be-3741-b1ea-71b6c57ad757";
         $body = array("grant_type" => "client_credentials");
         $payload = json_encode($body);
-        $addHeaders = "client_id: afb85967-389f-3ab3-ba40-64efd24607bf";
+        $addHeaders = "client_id: de9c04dd-d298-3976-9a82-3f795a1315b0";
 
         $ch = curl_init($endpoint);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', $addHeaders));
@@ -34,8 +34,8 @@ class SulamericaApi {
 
         $endpoint = "https://apisulamerica.sensedia.com".$ambiente."/coordinated-care/v1/clinical-indicators";
         // $endpoint = "https://teste-api-sulamerica3.free.beeceptor.com";
-        $clientID = "afb85967-389f-3ab3-ba40-64efd24607bf";
-        $addHeaders = "client_id: afb85967-389f-3ab3-ba40-64efd24607bf";
+        $clientID = "de9c04dd-d298-3976-9a82-3f795a1315b0";
+        $addHeaders = "client_id: de9c04dd-d298-3976-9a82-3f795a1315b0";
 
         $ch2 = curl_init($endpoint);
         curl_setopt($ch2, CURLOPT_HTTPHEADER, array('ACCESS_TOKEN: '.$access_token, 'Content-Type: application/json', $addHeaders));
