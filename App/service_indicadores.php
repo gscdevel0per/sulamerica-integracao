@@ -21,16 +21,16 @@
     set_time_limit(1200);
     switch ($_GET['environment']) {
         case 'dev':
-            $ambiente = $_GET['environment'];
+            $ambiente = "/".$_GET['environment'];
             break;     
         case 'homolog':
-            $ambiente = $_GET['environment'];
+            $ambiente = "/".$_GET['environment'];
             break; 
         case 'prod':
-            $ambiente = $_GET['environment'];
+            $ambiente = "";
             break;            
         default:
-            $ambiente = 'dev';
+            $ambiente = "/dev";
             break;
     }
 
