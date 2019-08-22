@@ -20,6 +20,18 @@
         return $return;
     }
 
+    function getCussCids($conn) {
+        $sql = $conn->prepare('SELECT DISTINCT
+            cuss as pac_sas_cod_unico
+        FROM
+            gsc_sulamerica_antecedentes_pessoais
+        ORDER BY 1 desc');
+        $sql->execute();
+        $return = $sql->fetchAll(PDO::FETCH_ASSOC);
+
+        return $return;
+    }
+
     function getAntropometricos($cuss, $conn) {
         $sql = $conn->prepare('SELECT 
             cuss
@@ -620,8 +632,10 @@
     }
 
     function generatePayLoadCids($access_token, $conn, $cuidadoCoordenado, $ambiente, $programa, $clientID) {
-        $arrayCuss = getCuss($conn);  
+        $arrayCuss = getCussCids($conn);  
         $payload2 = "";
+        date_default_timezone_set('America/Sao_Paulo');
+        $data_atual = date('Y-m-d H:i');
         for ($i=0; $i < count($arrayCuss); $i++) { 
             $dadosAntecedentes   = getAntecedentesPessoais($arrayCuss[$i]['pac_sas_cod_unico'], $conn);
             
