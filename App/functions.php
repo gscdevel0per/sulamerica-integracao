@@ -1,31 +1,40 @@
 <?php 
-
+    # Indicadores 
     function getCuss($conn) {
-        $sql = $conn->prepare('SELECT x.cuss as pac_sas_cod_unico
-        FROM(
-        SELECT cuss FROM gsc_sulamerica_antropometricos
-        union
-        SELECT cuss FROM gsc_sulamerica_autocontrole
-        union
-        SELECT cuss FROM gsc_sulamerica_habitos
-        union
-        SELECT cuss FROM gsc_sulamerica_medicamentos
-        union
-        SELECT cuss FROM gsc_sulamerica_tratamento
-        )x GROUP BY x.cuss
-        order by 1 desc');
-        $sql->execute();
-        $return = $sql->fetchAll(PDO::FETCH_ASSOC);
-
-        return $return;
+        $sql = $conn->prepare('
+        SELECT DISTINCT
+            cuss as pac_sas_cod_unico
+        FROM
+            gsc_sulamerica_header_indicadores
+        WHERE
+            status_transacao = 1
+        AND (flag_antropometricos = 1
+        OR flag_autocontrole = 1 
+        OR flag_habitos = 1
+        OR flag_medicamentos = 1
+        OR flag_tratamento = 1)
+        ;
+        ');
+        try {
+            $sql->execute();
+            $return = $sql->fetchAll(PDO::FETCH_ASSOC);
+            return $return;
+        } catch (Exception $e) {
+            echo 'Error: ' . $e->getMessage();
+            return false;
+        }
     }
 
     function getCussCids($conn) {
-        $sql = $conn->prepare('SELECT DISTINCT
+        $sql = $conn->prepare("
+        SELECT DISTINCT
             cuss as pac_sas_cod_unico
         FROM
-            gsc_sulamerica_antecedentes_pessoais
-        ORDER BY 1 desc');
+            gsc_sulamerica_header_indicadores
+        WHERE
+            status_transacao_cids = 1
+        AND flag_cids = 1
+        ");
         $sql->execute();
         $return = $sql->fetchAll(PDO::FETCH_ASSOC);
 
@@ -33,18 +42,21 @@
     }
 
     function getAntropometricos($cuss, $conn) {
-        $sql = $conn->prepare('SELECT 
-            cuss
-            , numero_da_carteirinha
-            , pac_codigo
-            , nome_beneficiario    
-            , peso
-            , altura
-            , circunferencia_abdominal
+        $sql = $conn->prepare("
+        SELECT 
+            h.peso
+            , h.altura
+            , h.circunferencia_abdominal
         FROM
-            gsc_sulamerica_antropometricos 
-        WHERE
-            cuss = '.$cuss);
+            gsc_sulamerica_antropometricos h
+        INNER JOIN
+            gsc_sulamerica_header_indicadores he
+            -- ON DATE_FORMAT(h.data_inclusao, '%Y-%m-%d') = DATE_FORMAT(he.data_transacao, '%Y-%m-%d') 
+            ON h.data_inclusao = he.data_transacao 
+            AND h.cuss = he.cuss 
+        WHERE h.cuss = ".$cuss."
+        AND he.status_transacao = 1;
+        ");
         $sql->execute();
         $return = $sql->fetchAll(PDO::FETCH_ASSOC);
 
@@ -52,18 +64,21 @@
     }
 
     function getAntecedentesPessoais($cuss, $conn) {
-        $sql = $conn->prepare('SELECT 
-            cuss
-            , numero_da_carteirinha
-            , pac_codigo
-            , nome_participante    
-            , num_cid
-            , data_inicio
-            , referido
+        $sql = $conn->prepare('
+        SELECT 
+            h.num_cid
+            , h.data_inicio
+            , h.referido
         FROM
-            gsc_sulamerica_antecedentes_pessoais 
+            gsc_sulamerica_antecedentes_pessoais h
+        INNER JOIN
+		    gsc_sulamerica_header_indicadores he
+        ON h.data_inclusao = he.data_transacao 
+        AND h.cuss = he.cuss 
         WHERE
-            cuss = '.$cuss);
+            h.cuss = '.$cuss.'
+        AND he.status_transacao_cids = 1
+        ');
         $sql->execute();
         $return = $sql->fetchAll(PDO::FETCH_ASSOC);
 
@@ -71,18 +86,21 @@
     }
 
     function getAutocontrole($cuss, $conn) {
-        $sql = $conn->prepare('SELECT 
-            cuss
-            , numero_da_carteirinha
-            , pac_codigo
-            , nome_participante    
-            , adesao_ao_medico
-            , adesao_ao_exame
-            , adesao_ao_medicamento_de_uso_junto
+        $sql = $conn->prepare("
+        SELECT  
+            h.adesao_ao_medico
+            , h.adesao_ao_exame
+            , h.adesao_ao_medicamento_de_uso_junto
         FROM
-            gsc_sulamerica_autocontrole 
-        WHERE
-            cuss ='.$cuss);
+            gsc_sulamerica_autocontrole h
+        INNER JOIN
+            gsc_sulamerica_header_indicadores he
+            -- ON DATE_FORMAT(h.data_inclusao, '%Y-%m-%d') = DATE_FORMAT(he.data_transacao, '%Y-%m-%d') 
+            ON h.data_inclusao = he.data_transacao 
+            AND h.cuss = he.cuss 
+        WHERE h.cuss = ".$cuss."
+        AND he.status_transacao = 1;
+        ");
         $sql->execute();
         $return = $sql->fetchAll(PDO::FETCH_ASSOC);
 
@@ -90,42 +108,46 @@
     }
 
     function getMedicamentos($cuss, $conn) {
-        $sql = $conn->prepare('SELECT 
-            cuss
-            , numero_da_carteirinha
-            , pac_codigo
-            , nome_participante    
-            , medicamento
-            , dosagem
-            , posologia
+        $sql = $conn->prepare("
+        SELECT 
+            h.medicamento
+            , h.dosagem
+            , h.posologia
         FROM
-            gsc_sulamerica_medicamentos
-        WHERE
-            cuss ='.$cuss.'
-        group by pac_codigo, medicamento, dosagem, posologia');
+            gsc_sulamerica_medicamentos h
+        INNER JOIN
+            gsc_sulamerica_header_indicadores he
+            -- ON DATE_FORMAT(h.data_inclusao, '%Y-%m-%d') = DATE_FORMAT(he.data_transacao, '%Y-%m-%d') 
+            ON h.data_inclusao = he.data_transacao 
+            AND h.cuss = he.cuss 
+        WHERE h.cuss = ".$cuss."
+        AND he.status_transacao = 1;
+        ");
         $sql->execute();
         $return = array(
             "dados" => $sql->fetchAll(PDO::FETCH_ASSOC),
             "linhas" => $sql->rowCount()
-        );
-        
+        );       
 
         return $return;
     }
 
     function getHabitos($cuss, $conn) {
-        $sql = $conn->prepare('SELECT 
-            cuss
-            , numero_da_carteirinha
-            , pac_codigo
-            , nome_participante    
-            , alimentacao
-            , tabagismo
-            , atividade_fisica
+        $sql = $conn->prepare("
+        SELECT 
+            h.alimentacao
+            , h.tabagismo
+            , h.atividade_fisica
         FROM
-            gsc_sulamerica_habitos
-        WHERE
-            cuss = '.$cuss);
+            gsc_sulamerica_habitos h
+        INNER JOIN
+            gsc_sulamerica_header_indicadores he
+            -- ON DATE_FORMAT(h.data_inclusao, '%Y-%m-%d') = DATE_FORMAT(he.data_transacao, '%Y-%m-%d') 
+            ON h.data_inclusao = he.data_transacao 
+            AND h.cuss = he.cuss 
+        WHERE h.cuss = ".$cuss."
+        AND he.status_transacao = 1;
+        ");
         $sql->execute();
         $return = $sql->fetchAll(PDO::FETCH_ASSOC);
 
@@ -133,25 +155,28 @@
     }
 
     function getTratamentos($cuss, $conn) {
-        $sql = $conn->prepare('SELECT 
-            cuss
-            , numero_da_carteirinha
-            , pac_codigo
-            , nome_participante    
-            , risco_de_internacao
-            , nivel_atencao
-            , grau_de_fragilidade
-            , avd
-            , aivd
-            , acompanhamento_medico
-            , arranjo_domiciliar
-            , oculos
-            , audicao
-            , queda
+        $sql = $conn->prepare("
+        SELECT 
+            h.risco_de_internacao
+            , h.nivel_atencao
+            , h.grau_de_fragilidade
+            , h.avd
+            , h.aivd
+            , h.acompanhamento_medico
+            , h.arranjo_domiciliar
+            , h.oculos
+            , h.audicao
+            , h.queda
         FROM
-            gsc_sulamerica_tratamento
-        WHERE
-            cuss = '.$cuss);
+            gsc_sulamerica_tratamento h
+        INNER JOIN
+            gsc_sulamerica_header_indicadores he
+            -- ON DATE_FORMAT(h.data_inclusao, '%Y-%m-%d') = DATE_FORMAT(he.data_transacao, '%Y-%m-%d') 
+            ON h.data_inclusao = he.data_transacao 
+            AND h.cuss = he.cuss 
+        WHERE h.cuss = ".$cuss."
+        AND he.status_transacao = 1;
+        ");
         $sql->execute();
         $return = $sql->fetchAll(PDO::FETCH_ASSOC);
 
@@ -159,11 +184,19 @@
     }
 
     function totalMedicamentos($cuss, $conn) {
-        $sql = $conn->prepare('SELECT 
-            count(cuss) as total_medicamentos 
+        $sql = $conn->prepare("
+        SELECT 
+            count(h.cuss) as total_medicamentos 
         FROM 
-            gsc_sulamerica_medicamentos
-        WHERE cuss = '.$cuss);
+            gsc_sulamerica_medicamentos h
+        INNER JOIN
+            gsc_sulamerica_header_indicadores he
+            -- ON DATE_FORMAT(h.data_inclusao, '%Y-%m-%d') = DATE_FORMAT(he.data_transacao, '%Y-%m-%d') 
+            ON h.data_inclusao = he.data_transacao 
+        AND h.cuss = he.cuss
+        WHERE h.cuss = ".$cuss."
+        AND he.status_transacao = 1
+        ");
         $sql->execute();
         $return = $sql->fetchAll(PDO::FETCH_ASSOC);
 
@@ -171,39 +204,42 @@
     }
 
     function getMedicamentosFor($conn, $cuss, $loop) {
-        $sql = $conn->prepare('SELECT 
-            cuss
-            , numero_da_carteirinha
-            , pac_codigo
-            , nome_participante    
-            , medicamento
-            , dosagem
-            , posologia
+        $sql = $conn->prepare("
+        SELECT 
+            h.medicamento
+            , h.dosagem
+            , h.posologia
         FROM
-            gsc_sulamerica_medicamentos
-        WHERE
-            cuss ='.$cuss.'
-        group by pac_codigo, medicamento, dosagem, posologia');
+            gsc_sulamerica_medicamentos h
+        INNER JOIN
+            gsc_sulamerica_header_indicadores he
+            -- ON DATE_FORMAT(h.data_inclusao, '%Y-%m-%d') = DATE_FORMAT(he.data_transacao, '%Y-%m-%d') 
+            ON h.data_inclusao = he.data_transacao 
+            AND h.cuss = he.cuss 
+        WHERE h.cuss = ".$cuss."
+        AND he.status_transacao = 1;
+        ");
         $sql->execute();
         $dados = $sql->fetchAll(PDO::FETCH_ASSOC);
+        //print_r($dados);
         $payload2 = "";
-        for ($i=0; $i < $loop; $i++) { 
+        for ($i=0; $i < $loop; $i++) {
             $payload2 .= '
             {
-                "nomeMedicamento": "'.$dados[0]['medicamento'].'",
-                "dosagem": "'.$dados[0]['dosagem'].'",
-                "posologia": "'.$dados[0]['posologia'].'"
+                "nomeMedicamento": "'.$dados[$i]['medicamento'].'",
+                "dosagem": "'.$dados[$i]['dosagem'].'",
+                "posologia": "'.$dados[$i]['posologia'].'"
             },';
         }
-
         return $payload2;
     }
 
     function generatePayLoad($access_token, $conn, $cuidadoCoordenado, $ambiente, $programa, $clientID) {
-        $arrayCuss = getCuss($conn); 
+        $arrayCuss = getCuss($conn);
         $payload2 = ""; 
         date_default_timezone_set('America/Sao_Paulo');
         $data_atual = date('Y-m-d H:i');
+        $data_transacao = date('Y-m-d');
 
         for ($i=0; $i < count($arrayCuss); $i++) { 
             $dadosAntropometricos   = getAntropometricos($arrayCuss[$i]['pac_sas_cod_unico'], $conn);
@@ -211,7 +247,7 @@
             $dadosMedicamentos      = getMedicamentos($arrayCuss[$i]['pac_sas_cod_unico'], $conn);
             $dadosHabitos           = getHabitos($arrayCuss[$i]['pac_sas_cod_unico'], $conn);
             $dadosTratamentos       = getTratamentos($arrayCuss[$i]['pac_sas_cod_unico'], $conn);
-            $totalMedicamentos      = totalMedicamentos($arrayCuss[$i]['pac_sas_cod_unico'], $conn);
+            $totalMedicamentos      = totalMedicamentos($arrayCuss[$i]['pac_sas_cod_unico'], $conn);            
 
             if ($arrayCuss[$i]['pac_sas_cod_unico'] != 0) {
                 
@@ -588,45 +624,60 @@
                         }
                     }
                 }
-
-                // $payload .= '],';
-                $payload = substr($payload,0,-1);
+                //$payload = substr($payload,0,-1);
                 if ($totalMedicamentos[0]['total_medicamentos'] > 0) {
 
                     $payload .= '
-                    ,{
+                    {
                         "codigoIndicador": 21,
                         "codigoIndicadorDetalhe": 60
                     }],';
 
                     $payload .= '"lista-medicamentos": [';
-                    // for ($x=0; $x < $totalMedicamentos[0]['total_medicamentos']; $x++) {
-                    //     $payload2 .= '
-                    //     {
-                    //         "nomeMedicamento": "'.$dadosMedicamentos['dados'][$x]['medicamento'].'",
-                    //         "dosagem": "'.$dadosMedicamentos['dados'][$x]['dosagem'].'",
-                    //         "posologia": "'.$dadosMedicamentos['dados'][$x]['posologia'].'"
-                    //     },';
-                    // }
                     $payload2 = getMedicamentosFor($conn, $arrayCuss[$i]['pac_sas_cod_unico'],$totalMedicamentos[0]['total_medicamentos']);
                     $payload .= substr($payload2,0,-1);
 
                     $payload .= ']';
                 } else {
+                    $payload = substr($payload,0,-1);
                     $payload .= ']';
                 }
-                
                 $payload .= '}';
+
                 # Envio de dados chamando a classe Token.
-                $cod_retorno = $cuidadoCoordenado->SendData($access_token, $payload, $ambiente, $clientID);
-                # Resgata o retorno do payload e insere no log.
-                $json_aux = json_decode($payload);
-                $json = json_encode($json_aux);
-                $sql = $conn->prepare("INSERT gsc_sulamerica_logs SELECT null,".$arrayCuss[$i]['pac_sas_cod_unico'].",'".$data_atual."',".$cod_retorno['statusCode'].",'".$cod_retorno['returnBody']."','".$json."','Indicadores'");
-                $sql->execute();
-                if ($cod_retorno['statusCode'] != 200 && $cod_retorno['statusCode'] != 201) {
-                    
-                } 
+                try {
+                    $cod_retorno = $cuidadoCoordenado->SendData($access_token, $payload, $ambiente, $clientID);
+                    // $nome_arquivo = 'files_indicadores/'.$arrayCuss[$i]['pac_sas_cod_unico'].'_'.$data_transacao.'.txt';
+                    // $arquivo = fopen($nome_arquivo,'w');
+                    // //escrevemos no arquivo
+                    // $texto = $payload;
+                    // fwrite($arquivo, $texto);
+                    // //Fechamos o arquivo após escrever nele
+                    // fclose($arquivo);
+                    // $cod_retorno = Array(
+                    //     "statusCode" => 200,
+                    //     "returnBody" => "teste"
+                    // );
+                    # Resgata o retorno do payload e insere no log.
+                    $json_aux = json_decode($payload);
+                    $json = json_encode($json_aux);                
+                    $sql = $conn->prepare("INSERT gsc_sulamerica_logs SELECT null,".$arrayCuss[$i]['pac_sas_cod_unico'].",'".$data_atual."',".$cod_retorno['statusCode'].",'".$cod_retorno['returnBody']."','".$json."','Indicadores'");
+                    $sql->execute();
+                    if ($cod_retorno['statusCode'] != 200 && $cod_retorno['statusCode'] != 201) {
+                        # Atualizar tabela de integração com Status de Transação = 3 (falhou);
+                        $sql_fail = $conn->prepare('UPDATE gsc_sulamerica_header_indicadores SET status_transacao = 3 WHERE cuss = '.$arrayCuss[$i]['pac_sas_cod_unico'].' AND status_transacao = 1');
+                        $sql_fail->execute();
+                    } else {
+                        # Atualizar tabela de integração com Status de Transação = 2 (sucesso);
+                        $sql_success = $conn->prepare('UPDATE gsc_sulamerica_header_indicadores SET status_transacao = 2 WHERE cuss = '.$arrayCuss[$i]['pac_sas_cod_unico'].' AND status_transacao = 1');
+                        $sql_success->execute();
+                    }
+                } catch (Exception $e) {
+                    # Chamada da tabela de ERRO Genérica (variavel $e);
+                    # Atualizar tabela de integração com Status de Transação = 3 (falhou);
+                    $sql_error = $conn->prepare('UPDATE gsc_sulamerica_header_indicadores SET status_transacao = 4 WHERE cuss = '.$arrayCuss[$i]['pac_sas_cod_unico'].' AND status_transacao = 1');
+                    $sql_error->execute();
+                }
             }
         }
     }
@@ -636,6 +687,8 @@
         $payload2 = "";
         date_default_timezone_set('America/Sao_Paulo');
         $data_atual = date('Y-m-d H:i');
+        $data_transacao = date('Y-m-d');
+
         for ($i=0; $i < count($arrayCuss); $i++) { 
             $dadosAntecedentes   = getAntecedentesPessoais($arrayCuss[$i]['pac_sas_cod_unico'], $conn);
             
@@ -649,7 +702,7 @@
                     $payload .= '"lista-CIDs": [';
         
                     if (!empty($dadosAntecedentes)) {
-                        for ($in=0; $in < count($dadosAntecedentes); $in++) { 
+                        for ($in=0; $in < count($dadosAntecedentes); $in++) {
                             switch ($dadosAntecedentes[$in]['referido']) {
                                 case 'Sim':
                                     $referido = 'S';
@@ -665,20 +718,45 @@
                                 "dataFim": "'.$dadosAntecedentes[$in]['data_inicio'].'",
                                 "flgReferido": "'.$referido.'"
                             },';
-                        }
+                        } # fim do for
                         $payload .= substr($payload2,0,-1);
+                        $payload2 = '';
                     }
                     $payload .= ']}';
-                   # Envio de dados chamando a classe Token.
-                    $cod_retorno = $cuidadoCoordenado->SendDataCid($access_token, $payload, $ambiente, $clientID);
-                    # Resgata o retorno do payload e insere no log.
-                    $json_aux = json_decode($payload);
-                    $json = json_encode($json_aux);
-                    $sql = $conn->prepare("INSERT gsc_sulamerica_logs SELECT null,".$arrayCuss[$i]['pac_sas_cod_unico'].",'".$data_atual."',".$cod_retorno['statusCode'].",'".$cod_retorno['returnBody']."','".$json."','Cids'");
-                    $sql->execute();
-                    if ($cod_retorno['statusCode'] != 200 && $cod_retorno['statusCode'] != 201) {
-                        
-                    }
+                    # Envio de dados chamando a classe Token.
+                    try {
+                        $cod_retorno = $cuidadoCoordenado->SendDataCid($access_token, $payload, $ambiente, $clientID);
+                        // $nome_arquivo = 'files_cids/'.$arrayCuss[$i]['pac_sas_cod_unico'].'_'.$data_transacao.'.txt';
+                        // $arquivo = fopen($nome_arquivo,'w');
+                        // //escrevemos no arquivo
+                        // $texto = $payload;
+                        // fwrite($arquivo, $texto);
+                        // //Fechamos o arquivo após escrever nele
+                        // fclose($arquivo);
+                        // $cod_retorno = Array(
+                        //     "statusCode" => 200,
+                        //     "returnBody" => "teste_cids"
+                        // );
+                        # Resgata o retorno do payload e insere no log.
+                        $json_aux = json_decode($payload);
+                        $json = json_encode($json_aux);
+                        $sql = $conn->prepare("INSERT gsc_sulamerica_logs SELECT null,".$arrayCuss[$i]['pac_sas_cod_unico'].",'".$data_atual."',".$cod_retorno['statusCode'].",'".$cod_retorno['returnBody']."','".$json."','Cids'");
+                        $sql->execute();
+                        if ($cod_retorno['statusCode'] != 200 && $cod_retorno['statusCode'] != 201) {
+                             # Atualizar tabela de integração com Status de Transação = 3 (falhou);
+                            $sql_fail = $conn->prepare('UPDATE gsc_sulamerica_header_indicadores SET status_transacao_cids = 3 WHERE cuss = '.$arrayCuss[$i]['pac_sas_cod_unico'].' AND status_transacao_cids = 1');
+                            $sql_fail->execute();
+                        } else {
+                            # Atualizar tabela de integração com Status de Transação = 2 (sucesso);
+                            $sql_success = $conn->prepare('UPDATE gsc_sulamerica_header_indicadores SET status_transacao_cids = 2 WHERE cuss = '.$arrayCuss[$i]['pac_sas_cod_unico'].' AND status_transacao_cids = 1');
+                            $sql_success->execute();
+                        }
+                    } catch (Exception $e) {
+                        # Chamada da tabela de ERRO Genérica (variavel $e);
+                        # Atualizar tabela de integração com Status de Transação = 3 (falhou);
+                        $sql_fail = $conn->prepare('UPDATE gsc_sulamerica_header_indicadores SET status_transacao_cids = 4 WHERE cuss = '.$arrayCuss[$i]['pac_sas_cod_unico'].' AND status_transacao_cids = 1');
+                        $sql_fail->execute();
+                    }                    
                 }
             }
         }
