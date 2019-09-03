@@ -226,9 +226,9 @@
         for ($i=0; $i < $loop; $i++) {
             $payload2 .= '
             {
-                "nomeMedicamento": "'.$dados[$i]['medicamento'].'",
-                "dosagem": "'.$dados[$i]['dosagem'].'",
-                "posologia": "'.$dados[$i]['posologia'].'"
+                "nomeMedicamento": "'.trim($dados[$i]['medicamento']).'",
+                "dosagem": "'.trim($dados[$i]['dosagem']).'",
+                "posologia": "'.trim($dados[$i]['posologia']).'"
             },';
         }
         return $payload2;
