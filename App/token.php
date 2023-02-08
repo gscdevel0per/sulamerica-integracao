@@ -9,7 +9,7 @@ class SulamericaApi {
         // $clientSecret = "b6a99eb1-38d1-3974-a4a9-ef78d0388cdd";
         $body = array("grant_type" => "client_credentials");
         $payload = json_encode($body);
-        $addHeaders = "client_id: afb85967-389f-3ab3-ba40-64efd24607bf";
+        $addHeaders = "";
 
         $ch = curl_init($endpoint);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', $addHeaders));
